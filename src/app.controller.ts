@@ -30,4 +30,10 @@ export class AppController {
   findAll() {
     return 'pong';
   }
+
+  @Public()
+  @Post('auth/google/verify')
+  async googleVerify(@Request() req) {
+    return await this.authService.validadeGoogleToken(req.body.tokenId);
+  }
 }
