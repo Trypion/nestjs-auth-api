@@ -1,32 +1,33 @@
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback } from 'passport-google-oauth20';
+import { Profile, Strategy } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor() {
+export class GoogleOauthStrategy extends PassportStrategy(Strategy, 'google') {
+  constructor(configService: ConfigService) {
     super({
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
-      callbackURL: 'http://localhost:3000/google/redirect',
+      // Put config in `.env`
+      clientID: configService.get<string>('OAUTH_GOOGLE_ID'),
+      clientSecret: configService.get<string>('OAUTH_GOOGLE_SECRET'),
+      callbackURL: configService.get<string>('OAUTH_GOOGLE_REDIRECT_URL'),
       scope: ['email', 'profile'],
     });
   }
 
   async validate(
-    accessToken: string,
-    refreshToken: string,
-    profile: any,
-    done: VerifyCallback,
-  ): Promise<any> {
-    const { name, emails, photos } = profile;
-    const user = {
-      email: emails[0].value,
-      firstName: name.givenName,
-      lastName: name.familyName,
-      picture: photos[0].value,
-      accessToken,
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Profile,
+  ) {
+    const { id, name, emails } = profile;
+
+    // Here a custom User object is returned. In the the repo I'm using a UsersService with repository pattern, learn more here: https://docs.nestjs.com/techniques/database
+    return {
+      provider: 'google',
+      providerId: id,
+      name: name.givenName,
+      username: emails[0].value,
     };
-    done(null, user);
   }
 }
