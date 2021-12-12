@@ -4,5 +4,6 @@ export default () => ({
       process.env.JWT_SECRET_BASE64 || '',
       'base64',
     ).toString('utf8'),
+    jwksUrl: process.env.JWT_JWKS_URL || '',
   },
 });
