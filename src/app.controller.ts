@@ -43,4 +43,10 @@ export class AppController {
     console.log('getJWKS');
     return this.authService.getJWKS();
   }
+
+  @Public()
+  @Get('.well-known/openid-configuration')
+  getOpenIdConfiguration() {
+    return this.authService.getOpenIdConfiguration();
+  }
 }

@@ -91,6 +91,33 @@ export class AuthService {
     return { keys: [jwks] };
   }
 
+  getOpenIdConfiguration() {
+    const config = {
+      issuer: 'http://52.40.167.82:5000/',
+      authorization_endpoint: 'http://52.40.167.82:5000/',
+      jwks_uri: 'http://52.40.167.82:5000/.well-known/jwks.json',
+      device_authorization_endpoint: 'http://52.40.167.82:5000/',
+      token_endpoint: 'http://52.40.167.82:5000/',
+      userinfo_endpoint: 'http://52.40.167.82:5000/',
+      revocation_endpoint: 'http://52.40.167.82:5000/',
+      id_token_signing_alg_values_supported: ['RS256'],
+      subject_types_supported: ['public'],
+      response_types_supported: [
+        'access_token',
+        'code',
+        'token',
+        'id_token',
+        'code token',
+        'code id_token',
+        'token id_token',
+        'code token id_token',
+        'none',
+      ],
+    };
+
+    return config;
+  }
+
   verifyEmail(email: string) {
     return ['israel.schmitt.j@gmail.com'].includes(email);
   }
