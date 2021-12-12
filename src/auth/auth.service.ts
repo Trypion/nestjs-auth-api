@@ -19,11 +19,13 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {
     this.privateKey = configService.get('jwt.privateKey');
+
     this.key = createPublicKey({
       key: this.privateKey,
       type: 'pkcs1',
       format: 'pem',
     }).export({ type: 'spki', format: 'der' });
+
     this.kid = createHash('md5')
       .update(this.key)
       .digest('hex')

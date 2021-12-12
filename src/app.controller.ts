@@ -1,5 +1,4 @@
 import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
-import { get } from 'http';
 import { AppService } from './app.service';
 import { AuthService } from './auth/auth.service';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -39,8 +38,9 @@ export class AppController {
   }
 
   @Public()
-  @Get('jwks.json')
+  @Get('.well-known/jwks.json')
   getJWKS() {
+    console.log('getJWKS');
     return this.authService.getJWKS();
   }
 }

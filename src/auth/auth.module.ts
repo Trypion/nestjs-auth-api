@@ -17,7 +17,10 @@ import { OAuth2Client } from 'google-auth-library';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('jwt.privateKey'),
-        signOptions: { expiresIn: configService.get<string>('JWT_TTL') },
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_TTL'),
+          algorithm: 'RS256',
+        },
       }),
       inject: [ConfigService],
     }),
