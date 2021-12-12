@@ -70,10 +70,13 @@ export class AuthService {
       userName: userName,
       name: name,
       sub: userId,
-      keyid: this.kid,
     };
 
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload, {
+      keyid: this.kid,
+      issuer: 'auth',
+      audience: 'api',
+    });
   }
 
   getJWKS() {
