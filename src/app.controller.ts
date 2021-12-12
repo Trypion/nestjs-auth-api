@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { get } from 'http';
 import { AppService } from './app.service';
 import { AuthService } from './auth/auth.service';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -35,5 +36,11 @@ export class AppController {
   @Post('auth/google/verify')
   async googleVerify(@Request() req) {
     return await this.authService.validadeGoogleToken(req.body.tokenId);
+  }
+
+  @Public()
+  @Get('jwks.json')
+  getJWKS() {
+    return this.authService.getJWKS();
   }
 }

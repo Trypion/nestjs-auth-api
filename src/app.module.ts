@@ -5,10 +5,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import configuration from './config/configuration';
 import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, ConfigModule.forRoot()],
+  imports: [
+    AuthModule,
+    UsersModule,
+    ConfigModule.forRoot({
+      load: [configuration],
+    }),
+  ],
   controllers: [AppController],
   providers: [
     AppService,
