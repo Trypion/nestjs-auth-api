@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UsersModule } from 'src/users/users.module';
+import { UserModule } from 'src/user/user.module';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
@@ -11,7 +11,7 @@ import { OAuth2Client } from 'google-auth-library';
 @Module({
   imports: [
     ConfigModule,
-    UsersModule,
+    UserModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
