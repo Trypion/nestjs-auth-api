@@ -1,16 +1,26 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
-import { JwtService } from '@nestjs/jwt';
-import { OAuth2Client } from 'google-auth-library';
+import {
+  Injectable,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createPublicKey, createHash } from 'crypto';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { createHash, createPublicKey, randomBytes } from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import * as jwk from 'rsa-pem-to-jwk';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { UserRoles } from 'src/user/user-roles.enum';
+import { UserService } from 'src/user/user.service';
+import { CredentialsDto } from './dto/credential.dto';
 
 @Injectable()
 export class AuthService {
-  private key: any = '';
-  private kid: any = '';
-  private privateKey = '';
+  private key: any;
+  private kid: any;
+  private privateKey: string;
+  private saltRounds: number;
 
   constructor(
     private readonly userService: UserService,
@@ -19,6 +29,7 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {
     this.privateKey = configService.get('jwt.privateKey');
+    this.saltRounds = configService.get('crypto.saltRounds');
 
     this.key = createPublicKey({
       key: this.privateKey,
@@ -33,19 +44,58 @@ export class AuthService {
       .join(':');
   }
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
-    if (user && user.password === pass) {
-      const { password, ...result } = user;
-      return result;
+  async signUp(createUserDto: CreateUserDto): Promise<User> {
+    if (createUserDto.password != createUserDto.passwordConfirmation) {
+      throw new UnprocessableEntityException('Senhas não conferem');
+    } else {
+      const { email, password, name } = createUserDto;
+
+      const persistedUser = await this.userService.user({ email: email });
+
+      if (persistedUser) {
+        throw new UnprocessableEntityException('Usuário já existe');
+      }
+
+      const salt = await bcrypt.genSalt(this.saltRounds);
+
+      const user = {
+        name: name,
+        email: email,
+        salt: salt,
+        password: await bcrypt.hash(password, salt),
+        role: UserRoles.USER,
+        status: true,
+        confirmationToken: randomBytes(32).toString('hex'),
+      };
+
+      return this.userService.createUser(user);
     }
-    return null;
   }
 
-  async login(user: any) {
-    return {
-      access_token: this.signJwt(user.username, user.username, user.id),
-    };
+  async login(credentialsDto: CredentialsDto): Promise<any> {
+    const { email, password } = credentialsDto;
+    const user = await this.userService.user({ email: email, status: true });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuário não encontrado');
+    }
+
+    const hash = await bcrypt.hash(password, user.salt);
+
+    if (hash === user.password) {
+      const jwt = this.signJwt(user.email, user.name, user.id, user.role);
+
+      return {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+        },
+        token: jwt,
+      };
+    }
   }
 
   async validadeGoogleToken(token: string) {
@@ -57,7 +107,7 @@ export class AuthService {
 
     if (this.verifyEmail(email)) {
       return {
-        access_token: this.signJwt(email, name, sub),
+        access_token: this.signJwt(email, name, sub, UserRoles.USER),
       };
     } else {
       // throw unauthorized error
@@ -65,11 +115,12 @@ export class AuthService {
     }
   }
 
-  signJwt(userName: string, name: string, userId: string) {
+  signJwt(userName: string, name: string, userId: string, role: string) {
     const payload = {
       userName: userName,
       name: name,
       sub: userId,
+      scope: role,
     };
 
     return this.jwtService.sign(payload, {

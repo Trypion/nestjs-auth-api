@@ -6,4 +6,7 @@ export default () => ({
     ).toString('utf8'),
     jwksUrl: process.env.JWT_JWKS_URL || '',
   },
+  crypto: {
+    saltRounds: Number(process.env.CRYPTO_ITERATIONS) || 10,
+  },
 });
