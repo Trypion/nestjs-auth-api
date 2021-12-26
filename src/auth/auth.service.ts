@@ -40,7 +40,7 @@ export class AuthService {
       .join(':');
   }
 
-  async signUp(createUserDto: CreateUserDto): Promise<User> {
+  async signUp(createUserDto: CreateUserDto) {
     if (createUserDto.password != createUserDto.passwordConfirmation) {
       throw new UnprocessableEntityException('Senhas não conferem');
     } else {
@@ -64,7 +64,9 @@ export class AuthService {
         confirmationToken: randomBytes(32).toString('hex'),
       };
 
-      return this.userService.createUser(user);
+      const createdUser = await this.userService.createUser(user);
+
+      return this.login(createdUser);
     }
   }
 
