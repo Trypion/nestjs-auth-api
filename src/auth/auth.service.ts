@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
@@ -50,7 +46,7 @@ export class AuthService {
     } else {
       const { email, password, name } = createUserDto;
 
-      const persistedUser = await this.userService.user({ email: email });
+      const persistedUser = await this.verifyEmail(email);
 
       if (persistedUser) {
         throw new UnprocessableEntityException('Usuário já existe');
@@ -72,30 +68,25 @@ export class AuthService {
     }
   }
 
-  async login(credentialsDto: CredentialsDto): Promise<any> {
+  async validateUser(credentialsDto: CredentialsDto): Promise<User> | null {
     const { email, password } = credentialsDto;
-    const user = await this.userService.user({ email: email, status: true });
+    const user = await this.verifyEmail(email);
 
     if (!user) {
-      throw new UnauthorizedException('Usuário não encontrado');
+      return null;
     }
 
     const hash = await bcrypt.hash(password, user.salt);
 
     if (hash === user.password) {
-      const jwt = this.signJwt(user.email, user.name, user.id, user.role);
-
-      return {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-        },
-        token: jwt,
-      };
+      return user;
     }
+  }
+
+  login(user: User) {
+    return {
+      access_token: this.signJwt(user.email, user.name, user.id, user.role),
+    };
   }
 
   async validadeGoogleToken(token: string) {
@@ -103,21 +94,35 @@ export class AuthService {
       idToken: token,
       audience: this.configService.get('OAUTH_GOOGLE_ID'),
     });
-    const { email, name, sub } = ticket.getPayload();
+    const { email, name } = ticket.getPayload();
 
-    if (this.verifyEmail(email)) {
-      return {
-        access_token: this.signJwt(email, name, sub, UserRoles.USER),
-      };
-    } else {
-      // throw unauthorized error
-      throw new UnauthorizedException('Unauthorized');
+    const persistedUser = await this.verifyEmail(email);
+
+    if (persistedUser) {
+      return this.login(persistedUser);
     }
+
+    const salt = await bcrypt.genSalt(this.saltRounds);
+    const password = randomBytes(32).toString('hex');
+
+    const newUser = {
+      name: name,
+      email: email,
+      salt: salt,
+      password: await bcrypt.hash(password, salt),
+      role: UserRoles.USER,
+      status: true,
+      confirmationToken: randomBytes(32).toString('hex'),
+    };
+
+    const user = await this.userService.createUser(newUser);
+
+    return this.login(user);
   }
 
-  signJwt(userName: string, name: string, userId: string, role: string) {
+  signJwt(email: string, name: string, userId: string, role: string) {
     const payload = {
-      userName: userName,
+      email: email,
       name: name,
       sub: userId,
       scope: role,
@@ -169,7 +174,10 @@ export class AuthService {
     return config;
   }
 
-  verifyEmail(email: string) {
-    return ['israel.schmitt.j@gmail.com'].includes(email);
+  async verifyEmail(email: string): Promise<User> {
+    return this.userService.user({
+      email: { contains: email, mode: 'insensitive' },
+      status: true,
+    });
   }
 }

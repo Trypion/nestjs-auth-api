@@ -6,12 +6,12 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import configuration from './config/configuration';
-import { UsersModule } from './user/user.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     AuthModule,
-    UsersModule,
+    UserModule,
     ConfigModule.forRoot({
       load: [configuration],
     }),
