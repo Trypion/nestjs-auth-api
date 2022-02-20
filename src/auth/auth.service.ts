@@ -40,7 +40,7 @@ export class AuthService {
       .join(':');
   }
 
-  async createUser(name: string, email: string, password: string) {
+  async createUser(name: string, email: string, password: string, role) {
     const salt = await bcrypt.genSalt(this.saltRounds);
 
     const user = {
@@ -48,7 +48,7 @@ export class AuthService {
       email: email,
       salt: salt,
       password: await bcrypt.hash(password, salt),
-      role: UserRoles.USER,
+      role: role,
       status: true,
       confirmationToken: randomBytes(32).toString('hex'),
     };
@@ -56,7 +56,7 @@ export class AuthService {
     return await this.userService.createUser(user);
   }
 
-  async signUp(createUserDto: CreateUserDto) {
+  async signUp(createUserDto: CreateUserDto, role: UserRoles) {
     if (createUserDto.password != createUserDto.passwordConfirmation) {
       throw new UnprocessableEntityException('Senhas não conferem');
     } else {
@@ -68,7 +68,7 @@ export class AuthService {
         throw new UnprocessableEntityException('Usuário já existe');
       }
 
-      const createdUser = await this.createUser(name, email, password);
+      const createdUser = await this.createUser(name, email, password, role);
 
       return this.login(createdUser);
     }
@@ -110,7 +110,7 @@ export class AuthService {
 
     const password = randomBytes(32).toString('hex');
 
-    const user = await this.createUser(name, email, password);
+    const user = await this.createUser(name, email, password, UserRoles.USER);
 
     return this.login(user);
   }

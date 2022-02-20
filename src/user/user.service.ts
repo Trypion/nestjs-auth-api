@@ -29,6 +29,19 @@ export class UserService {
     });
   }
 
+  async userInfo(
+    UserWhereInput: Prisma.UserWhereInput,
+  ): Promise<Prisma.UserSelect> {
+    const select: Prisma.UserSelect = {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+    };
+
+    return this.prisma.user.findFirst({ where: UserWhereInput, select });
+  }
+
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
     return this.prisma.user.create({ data });
   }
