@@ -10,12 +10,15 @@ import configuration from './config/configuration';
 import { winstonConfig } from './config/winston.config';
 import { LoggerInterceptor } from './interceptors/logger.interceptors';
 import { UserModule } from './user/user.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { mailerConfig } from './config/mailer.config';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
     WinstonModule.forRoot(winstonConfig),
+    MailerModule.forRoot(mailerConfig),
     ConfigModule.forRoot({
       load: [configuration],
     }),

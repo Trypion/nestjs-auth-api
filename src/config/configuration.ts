@@ -12,4 +12,7 @@ export default () => ({
   cors: {
     origin: process.env.CORS_ORIGIN || '*',
   },
+  mail: {
+    transport: process.env.EMAIL_TRANSPORT || '',
+  },
 });

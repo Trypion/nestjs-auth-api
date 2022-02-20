@@ -1,3 +1,4 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -23,6 +24,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly googleAuthClient: OAuth2Client,
     private readonly configService: ConfigService,
+    private readonly mailerService: MailerService,
   ) {
     this.privateKey = configService.get('jwt.privateKey');
     this.saltRounds = configService.get('crypto.saltRounds');
@@ -40,7 +42,12 @@ export class AuthService {
       .join(':');
   }
 
-  async createUser(name: string, email: string, password: string, role) {
+  async createUser(
+    name: string,
+    email: string,
+    password: string,
+    role: UserRoles,
+  ) {
     const salt = await bcrypt.genSalt(this.saltRounds);
 
     const user = {
@@ -59,19 +66,31 @@ export class AuthService {
   async signUp(createUserDto: CreateUserDto, role: UserRoles) {
     if (createUserDto.password != createUserDto.passwordConfirmation) {
       throw new UnprocessableEntityException('Senhas não conferem');
-    } else {
-      const { email, password, name } = createUserDto;
-
-      const persistedUser = await this.verifyEmail(email);
-
-      if (persistedUser) {
-        throw new UnprocessableEntityException('Usuário já existe');
-      }
-
-      const createdUser = await this.createUser(name, email, password, role);
-
-      return this.login(createdUser);
     }
+
+    const { email, password, name } = createUserDto;
+
+    const persistedUser = await this.verifyEmail(email);
+
+    if (persistedUser) {
+      throw new UnprocessableEntityException('Usuário já existe');
+    }
+
+    const createdUser = await this.createUser(name, email, password, role);
+
+    const mail = {
+      to: email,
+      from: 'noreply@application.com',
+      subject: 'Confirmação de cadastro',
+      template: 'email-confirmation',
+      context: {
+        token: createdUser.confirmationToken,
+      },
+    };
+
+    this.mailerService.sendMail(mail);
+
+    return this.login(createdUser);
   }
 
   async validateUser(credentialsDto: CredentialsDto): Promise<User> | null {
