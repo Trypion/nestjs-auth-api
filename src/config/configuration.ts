@@ -9,4 +9,7 @@ export default () => ({
   crypto: {
     saltRounds: Number(process.env.CRYPTO_ITERATIONS) || 10,
   },
+  cors: {
+    origin: process.env.CORS_ORIGIN || '*',
+  },
 });

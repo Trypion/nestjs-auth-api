@@ -1,17 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { WinstonModule } from 'nest-winston';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import configuration from './config/configuration';
+import { winstonConfig } from './config/winston.config';
+import { LoggerInterceptor } from './interceptors/logger.interceptors';
 import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
+    WinstonModule.forRoot(winstonConfig),
     ConfigModule.forRoot({
       load: [configuration],
     }),
@@ -22,6 +26,10 @@ import { UserModule } from './user/user.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggerInterceptor,
     },
   ],
 })

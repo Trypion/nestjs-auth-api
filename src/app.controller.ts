@@ -1,16 +1,9 @@
-import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
-import { AppService } from './app.service';
-import { AuthService } from './auth/auth.service';
+import { Controller, Get, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { Public } from './auth/public.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    private readonly authService: AuthService,
-  ) {}
-
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
@@ -21,5 +14,11 @@ export class AppController {
   @Get('ping')
   ping() {
     return 'pong';
+  }
+
+  @Public()
+  @Get('/')
+  root() {
+    return 'Welcome to the auth API';
   }
 }
