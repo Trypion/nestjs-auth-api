@@ -36,18 +36,17 @@ export class UserController {
       throw new ForbiddenException(
         'Você não tem autorização para acessar esse recurso',
       );
-    } else {
-      const { name, email, role, status } = await this.userService.updateUser({
-        where: { id: id },
-        data: updateUserDto,
-      });
-
-      return {
-        name,
-        email,
-        role: role as UserRoles,
-        status,
-      };
     }
+    const { name, email, role, status } = await this.userService.updateUser({
+      where: { id: id },
+      data: updateUserDto,
+    });
+
+    return {
+      name,
+      email,
+      role: role as UserRoles,
+      status,
+    };
   }
 }
