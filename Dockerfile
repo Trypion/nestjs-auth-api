@@ -8,8 +8,7 @@ WORKDIR /temp/app/
 COPY . /temp/app/
 
 RUN npm i \
-    && npm run build \
-    && npm prune --production
+    && npm run build
 
 # ---
 
