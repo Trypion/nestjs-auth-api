@@ -154,7 +154,7 @@ export class AuthService {
 
     const jwks = jwk(
       feed(this.privateKey),
-      { kid: this.kid, use: 'sig' },
+      { kid: this.kid, use: 'sig', alg: 'RS256' },
       'public',
     );
 

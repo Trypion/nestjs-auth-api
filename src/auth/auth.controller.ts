@@ -48,7 +48,6 @@ export class AuthController {
   @Public()
   @Get('.well-known/jwks.json')
   getJWKS() {
-    console.log('getJWKS');
     return this.authService.getJWKS();
   }
 
