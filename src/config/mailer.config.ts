@@ -5,11 +5,11 @@ import config from '../config/configuration';
 
 export const mailerConfig: MailerOptions = {
   template: {
-    dir: path.resolve(__dirname, '..', '..', 'templates'),
+    dir: path.resolve(__dirname, '..', 'templates'),
     adapter: new HandlebarsAdapter(),
     options: {
       extName: '.hbs',
-      layoutsDir: path.resolve(__dirname, '..', '..', 'templates'),
+      layoutsDir: path.resolve(__dirname, '..', 'templates'),
     },
   },
   transport: config().mail.transport,
