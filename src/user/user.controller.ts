@@ -8,8 +8,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { Role } from 'src/common/decorators/role.decorator';
+import { GetUser } from '../common/decorators/get-user.decorator';
+import { Role } from '../common/decorators/role.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRoles } from './user-roles.enum';
 

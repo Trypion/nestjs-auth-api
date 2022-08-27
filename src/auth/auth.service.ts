@@ -7,9 +7,9 @@ import * as bcrypt from 'bcrypt';
 import { createHash, createPublicKey, randomBytes } from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import * as jwk from 'rsa-pem-to-jwk';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { UserRoles } from 'src/user/user-roles.enum';
-import { UserService } from 'src/user/user.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { UserRoles } from '../user/user-roles.enum';
+import { UserService } from '../user/user.service';
 import { CredentialsDto } from './dto/credential.dto';
 
 @Injectable()
